@@ -41,6 +41,12 @@ bool isNumeric(string const& input){
     return true;
 }
 
+void strToUpper(string& input){
+    for(int itr=0; itr<input.length(); itr++){
+        input[itr]=toupper(input[itr]);
+    }
+}
+
 void readGrid(subSquare input[9][9]){
     for(int row=0; row<9; row++){
         for(int col=0; col<9; col++){
@@ -52,13 +58,13 @@ void readGrid(subSquare input[9][9]){
 
 void createGrid(subSquare input[9][9]){
     string currentRow;
-    cout<< "Enter the grid below, row by row. put zeroes where nothing is assigned. \n";
-    cout << "No delimiting characters.\n";
+    printf("Please enter the grid below\n");
     int row=0;
     while(row<9){
         currentRow="";
         printf("Enter row %d:\n", row+1);
         getline(cin, currentRow);
+        strToUpper(currentRow);
         if(isNumeric(currentRow)){
             if(currentRow.length()==9){
                 for(int col=0; col<9; col++){
@@ -66,15 +72,25 @@ void createGrid(subSquare input[9][9]){
                 }
                 row++;
             }else if(currentRow.length() < 9){
-                printf("entry must be 9 rows long\n");
+                printf("ERROR: entry must be 9 numbers\n");
             }else{
-                printf("entry long it must be 9 rows long\n");
+                printf("ERROR: entry must be 9 numbers\n");
+            }
+        }else{
+            if(currentRow=="BACK"){
+                switch(row){
+                    case 0: printf("Cannot go back further\n"); break;
+                    default: row--; break;
+                }
+            }else{
+                printf("ERROR: entry not valid\n");
             }
         }
     }
 }
 
-void copygrid(subSquare dst[9][9], subSquare src[9][9]){
+
+void cpyGrid(subSquare dst[9][9], subSquare src[9][9]){
     for(int row = 0; row < 9; row++){
         for(int col = 0; col < 9; col++){
             dst[row][col] = src[row][col];
@@ -82,7 +98,8 @@ void copygrid(subSquare dst[9][9], subSquare src[9][9]){
     }
 }
 
-void copygrid2(subSquare TD[9][9][9], subSquare arr[9][9], int const& TDIndx, string const& mode){
+
+void cpyGrid2(subSquare TD[9][9][9], subSquare arr[9][9], int const& TDIndx, string const& mode){
     if(mode == "TO_3D"){
         for(int row = 0; row < 9; row++){
             for(int col = 0; col < 9; col++){
@@ -97,6 +114,7 @@ void copygrid2(subSquare TD[9][9][9], subSquare arr[9][9], int const& TDIndx, st
         }
     }
 }
+
 
 bool gridUnsolved(subSquare input[9][9]){
     for(int row = 0; row < 9; row++){
@@ -136,7 +154,8 @@ void mkSqrVars(int const& rowIndx, int const& colIndx, int& rowPH, int& colPH){
     }
 }
 
-	ingFor){
+
+bool squareContainsNum(subSquare input[9][9], int const& rowIndx, int const& colIndx, int const& num, string const& checkingFor){
     int instances = 0;
 
     int row;
@@ -144,7 +163,7 @@ void mkSqrVars(int const& rowIndx, int const& colIndx, int& rowPH, int& colPH){
     int col;
     int colPH;
     mkSqrVars(rowIndx, colIndx, rowPH, colPH);
-
+    
     int stopRow=rowPH+3;
     int stopCol=colPH+3;
     if(checkingFor == "fNums"){
@@ -171,6 +190,7 @@ void mkSqrVars(int const& rowIndx, int const& colIndx, int& rowPH, int& colPH){
     }
 }
 
+
 bool rowContainsNum(subSquare input[9][9], int const& rowIndx, int const& num, string const& checkingFor){
     int instances = 0;
     if(checkingFor == "fNums"){
@@ -192,6 +212,7 @@ bool rowContainsNum(subSquare input[9][9], int const& rowIndx, int const& num, s
         return false;
     }
 }
+
 
 bool colContainsNum(subSquare input[9][9], int const& colIndx, int const& num, string const& checkingFor){
     int instances = 0;
@@ -215,14 +236,17 @@ bool colContainsNum(subSquare input[9][9], int const& colIndx, int const& num, s
     }
 }
 
+
 void fullAssign(subSquare input[9][9], int const& rowIndx, int const& colIndx, int const& num){
     input[rowIndx][colIndx].assignFNum(num);
 
+ 
     for(int c = 0; c < 9; c++){
         if(input[rowIndx][c].PNumsContain(num)){
             input[rowIndx][c].removePNum(num);
         }
     }
+   
     for(int r = 0; r < 9; r++){
         if(input[r][colIndx].PNumsContain(num)){
             input[r][colIndx].removePNum(num);
@@ -245,10 +269,12 @@ void fullAssign(subSquare input[9][9], int const& rowIndx, int const& colIndx, i
     }
 }
 
+
 void phase1(subSquare input[9][9]){
     for(int row = 0; row < 9; row++){
         for(int col = 0; col < 9; col++){
             for(int num = 1; num < 10; num++){
+                
                 if(input[row][col].getFNum() == 0){
                     if(!squareContainsNum(input, row, col, num, "fNums") &&
                      !rowContainsNum(input, row, num, "fNums") &&
@@ -283,8 +309,11 @@ void phase2(subSquare input[9][9]){
     }while(numbersAssigned);
 }
 
+
+void phase3(subSquare input[9][9]){
+   
     subSquare savedState[9][9];
-    copygrid(savedState, input);
+    cpyGrid(savedState, input);
 
     int guessRow;
     int guessCol;
@@ -300,36 +329,43 @@ void phase2(subSquare input[9][9]){
         }   
     }
 
+   
     int guesses = savedState[guessRow][guessCol].getPNums().size();
 
+    
     int guessNum;
+    
     int guessNumIndx = 0;
+   
     subSquare TD[9][9][9];
+   
     int numGuessGrids = 0;
 
     if(input[guessRow][guessCol].getPNums().size() > 0){
         while(guessNumIndx < guesses && gridUnsolved(input)){
-            copygrid(input, savedState);
+            cpyGrid(input, savedState);
             guessNum = input[guessRow][guessCol].getPNums()[guessNumIndx];
             fullAssign(input, guessRow, guessCol, guessNum);
             phase2(input);
             if(gridUnsolved(input)){
-                copygrid2(TD, input, guessNumIndx, "TO_3D");
+             
+                cpyGrid2(TD, input, guessNumIndx, "TO_3D");
                 numGuessGrids++;
                 guessNumIndx++;
             }else{
                 guessNumIndx = guesses+1;
             }
             if(guessNumIndx == guesses){
+               
                 int i = 0;
                 subSquare ss[9][9];
-                copygrid(ss, savedState);
+                cpyGrid(ss, savedState);
                 while(gridUnsolved(ss) && i < numGuessGrids){
-                    copygrid2(TD, ss, i, "TO_2D");
+                    cpyGrid2(TD, ss, i, "TO_2D");
                     phase3(ss);
                     i++;
                 }
-                copygrid(input, ss);
+                cpyGrid(input, ss);
             }
         }
     }
@@ -344,38 +380,25 @@ void solve(subSquare grid[9][9]){
         phase3(grid);
     }
     if(!gridUnsolved(grid)){
-        printf("After solving:\n");
+        printf("Answer:\n");
         readGrid(grid);
     }else{
-        printf("ERROR: Impossible to solve. Closest it got:\n");
+        printf("ERROR:Closest possible answer:\n");
         readGrid(grid);
     }
 }
 
 int main(){
-    cout << "input the number"<< endl;
-	int ans;
-    cout << "1. Continue" << endl;
-    cout << "2. Exit" << endl;
-    cin >> ans;
-    switch(ans){
-    	case 1:
-    		{
-			subSquare grid[9][9];
-        	createGrid(grid);
-        	solve(grid);
-        	return main();
-        	break;
-        }
-		{
-		case 2:
-			return 0;
-			break;
-		}
-		{
-		default:
-			cout << ("wrong option try again\n");
-			break;
-		}
-			}
+    printf("Enter 'solve'\n");
+    string str;
+    cin >> str;
+    cin.ignore();
+    strToUpper(str);
+    if(str=="SOLVE"){
+        subSquare grid[9][9];
+        createGrid(grid);
+        solve(grid);
+        return 1;
+    }
+    return 0;
 }
